@@ -17,6 +17,8 @@ app.use("/api/users", require("./routes/userRoutes"));
 
 app.use("/api/posts", require("./routes/postRoutes"));
 
+app.use("/api/feed", require("./routes/feedRoutes"));
+
 app.get("/", (req, res) => {
   res.json({ message: "ICHgram API is working" });
 });
