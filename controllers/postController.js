@@ -26,9 +26,7 @@ const createPost = async (req, res) => {
       post: populatedPost,
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -40,13 +38,84 @@ const getPosts = async (req, res) => {
 
     res.json(posts);
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getPostById = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id).populate(
+      "author",
+      "username fullName avatar"
+    );
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.json(post);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updatePost = async (req, res) => {
+  try {
+    const { text, image } = req.body;
+
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    if (post.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "You can update only your own posts" });
+    }
+
+    if (text !== undefined) post.text = text;
+    if (image !== undefined) post.image = image;
+
+    await post.save();
+
+    const updatedPost = await post.populate(
+      "author",
+      "username fullName avatar"
+    );
+
+    res.json({
+      message: "Post updated successfully",
+      post: updatedPost,
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deletePost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    if (post.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "You can delete only your own posts" });
+    }
+
+    await post.deleteOne();
+
+    res.json({ message: "Post deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
 module.exports = {
   createPost,
   getPosts,
+  getPostById,
+  updatePost,
+  deletePost,
 };
