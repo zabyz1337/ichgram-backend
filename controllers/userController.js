@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Post = require("../models/Post");
 
 const getProfile = async (req, res) => {
   res.json(req.user);
@@ -111,9 +112,42 @@ const toggleFollow = async (req, res) => {
 };
 
 
+
+const getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select("-password")
+      .populate("followers", "username fullName avatar")
+      .populate("following", "username fullName avatar");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getUserPosts = async (req, res) => {
+  try {
+    const posts = await Post.find({ author: req.params.id })
+      .populate("author", "username fullName avatar")
+      .sort({ createdAt: -1 });
+
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 module.exports = {
   getProfile,
   searchUsers,
   updateProfile,
   toggleFollow,
+  getUserById,
+  getUserPosts,
 };
