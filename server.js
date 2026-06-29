@@ -13,8 +13,9 @@ app.use(express.json());
 
 app.use("/api/auth", require("./routes/authRoutes"));
 
-
 app.use("/api/users", require("./routes/userRoutes"));
+
+app.use("/api/posts", require("./routes/postRoutes"));
 
 app.get("/", (req, res) => {
   res.json({ message: "ICHgram API is working" });
