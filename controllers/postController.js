@@ -151,6 +151,47 @@ const toggleLikePost = async (req, res) => {
 };
 
 
+
+const addComment = async (req, res) => {
+  try {
+    const { text } = req.body;
+
+    if (!text) {
+      return res.status(400).json({
+        message: "Comment text is required",
+      });
+    }
+
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        message: "Post not found",
+      });
+    }
+
+    post.comments.push({
+      text,
+      author: req.user._id,
+    });
+
+    await post.save();
+
+    const updatedPost = await Post.findById(post._id)
+      .populate("author", "username fullName avatar")
+      .populate("comments.author", "username fullName avatar");
+
+    res.status(201).json({
+      message: "Comment added successfully",
+      post: updatedPost,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createPost,
   getPosts,
@@ -158,4 +199,5 @@ module.exports = {
   updatePost,
   deletePost,
   toggleLikePost,
+  addComment,
 };
