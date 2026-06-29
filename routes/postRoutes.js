@@ -9,6 +9,7 @@ const {
   deletePost,
   toggleLikePost,
   addComment,
+  deleteComment,
 } = require("../controllers/postController");
 
 const router = express.Router();
@@ -20,5 +21,6 @@ router.put("/:id", authMiddleware, updatePost);
 router.delete("/:id", authMiddleware, deletePost);
 router.post("/:id/like", authMiddleware, toggleLikePost);
 router.post("/:id/comments", authMiddleware, addComment);
+router.delete("/:postId/comments/:commentId", authMiddleware, deleteComment);
 
 module.exports = router;
