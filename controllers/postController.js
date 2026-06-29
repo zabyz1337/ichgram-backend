@@ -112,10 +112,50 @@ const deletePost = async (req, res) => {
   }
 };
 
+const toggleLikePost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const userId = req.user._id.toString();
+
+    const isLiked = post.likes.some(
+      (like) => like.toString() === userId
+    );
+
+    if (isLiked) {
+      post.likes = post.likes.filter(
+        (like) => like.toString() !== userId
+      );
+    } else {
+      post.likes.push(req.user._id);
+    }
+
+    await post.save();
+
+    const updatedPost = await post.populate(
+      "author",
+      "username fullName avatar"
+    );
+
+    res.json({
+      message: isLiked ? "Post unliked" : "Post liked",
+      post: updatedPost,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 module.exports = {
   createPost,
   getPosts,
   getPostById,
   updatePost,
   deletePost,
+  toggleLikePost,
 };
