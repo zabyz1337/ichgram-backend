@@ -4,6 +4,12 @@ require("dotenv").config();
 
 const connectDB = require("./config/db");
 
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
+const postRoutes = require("./routes/postRoutes");
+const feedRoutes = require("./routes/feedRoutes");
+const exploreRoutes = require("./routes/exploreRoutes");
+
 const app = express();
 
 connectDB();
@@ -11,13 +17,11 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/auth", require("./routes/authRoutes"));
-
-app.use("/api/users", require("./routes/userRoutes"));
-
-app.use("/api/posts", require("./routes/postRoutes"));
-
-app.use("/api/feed", require("./routes/feedRoutes"));
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/feed", feedRoutes);
+app.use("/api/explore", exploreRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "ICHgram API is working" });
