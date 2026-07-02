@@ -1,4 +1,5 @@
 const Post = require("../models/Post");
+const Notification = require("../models/Notification");
 
 const fileToBase64 = (file) => {
   return `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
@@ -66,7 +67,6 @@ const getPostById = async (req, res) => {
 const updatePost = async (req, res) => {
   try {
     const { text } = req.body;
-
     const post = await Post.findById(req.params.id);
 
     if (!post) {
@@ -135,6 +135,15 @@ const toggleLikePost = async (req, res) => {
       post.likes = post.likes.filter((like) => like.toString() !== userId);
     } else {
       post.likes.push(req.user._id);
+
+      if (post.author.toString() !== req.user._id.toString()) {
+        await Notification.create({
+          recipient: post.author,
+          sender: req.user._id,
+          type: "like",
+          post: post._id,
+        });
+      }
     }
 
     await post.save();
@@ -169,6 +178,15 @@ const addComment = async (req, res) => {
 
     await post.save();
 
+    if (post.author.toString() !== req.user._id.toString()) {
+      await Notification.create({
+        recipient: post.author,
+        sender: req.user._id,
+        type: "comment",
+        post: post._id,
+      });
+    }
+
     const updatedPost = await Post.findById(post._id)
       .populate("author", "username fullName avatar")
       .populate("comments.author", "username fullName avatar");
@@ -185,7 +203,6 @@ const addComment = async (req, res) => {
 const deleteComment = async (req, res) => {
   try {
     const { postId, commentId } = req.params;
-
     const post = await Post.findById(postId);
 
     if (!post) {

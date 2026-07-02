@@ -1,6 +1,8 @@
 const User = require("../models/User");
 const Post = require("../models/Post");
 
+const Notification = require("../models/Notification");
+
 const fileToBase64 = (file) => {
   return `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
 };
@@ -88,20 +90,26 @@ const toggleFollow = async (req, res) => {
     }
 
     const isFollowing = currentUser.following.some(
-      (id) => id.toString() === userToFollowId
+      (id) => id.toString() === userToFollowId,
     );
 
     if (isFollowing) {
       currentUser.following = currentUser.following.filter(
-        (id) => id.toString() !== userToFollowId
+        (id) => id.toString() !== userToFollowId,
       );
 
       userToFollow.followers = userToFollow.followers.filter(
-        (id) => id.toString() !== currentUserId
+        (id) => id.toString() !== currentUserId,
       );
     } else {
       currentUser.following.push(userToFollowId);
       userToFollow.followers.push(currentUserId);
+
+      await Notification.create({
+        recipient: userToFollowId,
+        sender: currentUserId,
+        type: "follow",
+      });
     }
 
     await currentUser.save();
