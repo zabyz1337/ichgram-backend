@@ -1,5 +1,6 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/authMiddleware");
+const upload = require("../middlewares/uploadMiddleware");
 
 const {
   getProfile,
@@ -13,7 +14,7 @@ const {
 const router = express.Router();
 
 router.get("/me", authMiddleware, getProfile);
-router.put("/me", authMiddleware, updateProfile);
+router.put("/me", authMiddleware, upload.single("avatar"), updateProfile);
 router.get("/search", authMiddleware, searchUsers);
 
 router.get("/:id", authMiddleware, getUserById);

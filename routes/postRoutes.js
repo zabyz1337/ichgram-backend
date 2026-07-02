@@ -1,6 +1,4 @@
 const express = require("express");
-const authMiddleware = require("../middlewares/authMiddleware");
-
 const {
   createPost,
   getPosts,
@@ -12,14 +10,19 @@ const {
   deleteComment,
 } = require("../controllers/postController");
 
+const authMiddleware = require("../middlewares/authMiddleware");
+const upload = require("../middlewares/uploadMiddleware");
+
 const router = express.Router();
 
-router.post("/", authMiddleware, createPost);
+router.post("/", authMiddleware, upload.single("image"), createPost);
 router.get("/", authMiddleware, getPosts);
 router.get("/:id", authMiddleware, getPostById);
-router.put("/:id", authMiddleware, updatePost);
+router.put("/:id", authMiddleware, upload.single("image"), updatePost);
 router.delete("/:id", authMiddleware, deletePost);
+
 router.post("/:id/like", authMiddleware, toggleLikePost);
+
 router.post("/:id/comments", authMiddleware, addComment);
 router.delete("/:postId/comments/:commentId", authMiddleware, deleteComment);
 

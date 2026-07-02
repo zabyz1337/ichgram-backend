@@ -1,6 +1,10 @@
 const User = require("../models/User");
 const Post = require("../models/Post");
 
+const fileToBase64 = (file) => {
+  return `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+};
+
 const getProfile = async (req, res) => {
   res.json(req.user);
 };
@@ -28,7 +32,7 @@ const searchUsers = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { fullName, username, bio, avatar } = req.body;
+    const { fullName, username, bio } = req.body;
 
     if (username) {
       const existingUser = await User.findOne({ username });
@@ -48,7 +52,7 @@ const updateProfile = async (req, res) => {
     if (fullName !== undefined) user.fullName = fullName;
     if (username !== undefined) user.username = username;
     if (bio !== undefined) user.bio = bio;
-    if (avatar !== undefined) user.avatar = avatar;
+    if (req.file) user.avatar = fileToBase64(req.file);
 
     await user.save();
 
@@ -111,8 +115,6 @@ const toggleFollow = async (req, res) => {
   }
 };
 
-
-
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
@@ -141,7 +143,6 @@ const getUserPosts = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 module.exports = {
   getProfile,

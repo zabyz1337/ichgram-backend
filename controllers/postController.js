@@ -1,14 +1,18 @@
 const Post = require("../models/Post");
 
+const fileToBase64 = (file) => {
+  return `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+};
+
 const createPost = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text } = req.body;
 
     if (!text) {
-      return res.status(400).json({
-        message: "Post text is required",
-      });
+      return res.status(400).json({ message: "Post text is required" });
     }
+
+    const image = req.file ? fileToBase64(req.file) : "";
 
     const post = await Post.create({
       text,
@@ -34,6 +38,7 @@ const getPosts = async (req, res) => {
   try {
     const posts = await Post.find()
       .populate("author", "username fullName avatar")
+      .populate("comments.author", "username fullName avatar")
       .sort({ createdAt: -1 });
 
     res.json(posts);
@@ -44,10 +49,9 @@ const getPosts = async (req, res) => {
 
 const getPostById = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id).populate(
-      "author",
-      "username fullName avatar"
-    );
+    const post = await Post.findById(req.params.id)
+      .populate("author", "username fullName avatar")
+      .populate("comments.author", "username fullName avatar");
 
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
@@ -61,7 +65,7 @@ const getPostById = async (req, res) => {
 
 const updatePost = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text } = req.body;
 
     const post = await Post.findById(req.params.id);
 
@@ -70,11 +74,13 @@ const updatePost = async (req, res) => {
     }
 
     if (post.author.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "You can update only your own posts" });
+      return res.status(403).json({
+        message: "You can update only your own posts",
+      });
     }
 
     if (text !== undefined) post.text = text;
-    if (image !== undefined) post.image = image;
+    if (req.file) post.image = fileToBase64(req.file);
 
     await post.save();
 
@@ -101,7 +107,9 @@ const deletePost = async (req, res) => {
     }
 
     if (post.author.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "You can delete only your own posts" });
+      return res.status(403).json({
+        message: "You can delete only your own posts",
+      });
     }
 
     await post.deleteOne();
@@ -121,53 +129,37 @@ const toggleLikePost = async (req, res) => {
     }
 
     const userId = req.user._id.toString();
-
-    const isLiked = post.likes.some(
-      (like) => like.toString() === userId
-    );
+    const isLiked = post.likes.some((like) => like.toString() === userId);
 
     if (isLiked) {
-      post.likes = post.likes.filter(
-        (like) => like.toString() !== userId
-      );
+      post.likes = post.likes.filter((like) => like.toString() !== userId);
     } else {
       post.likes.push(req.user._id);
     }
 
     await post.save();
 
-    const updatedPost = await post.populate(
-      "author",
-      "username fullName avatar"
-    );
-
     res.json({
       message: isLiked ? "Post unliked" : "Post liked",
-      post: updatedPost,
+      post,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-
-
 const addComment = async (req, res) => {
   try {
     const { text } = req.body;
 
     if (!text) {
-      return res.status(400).json({
-        message: "Comment text is required",
-      });
+      return res.status(400).json({ message: "Comment text is required" });
     }
 
     const post = await Post.findById(req.params.id);
 
     if (!post) {
-      return res.status(404).json({
-        message: "Post not found",
-      });
+      return res.status(404).json({ message: "Post not found" });
     }
 
     post.comments.push({
@@ -186,9 +178,7 @@ const addComment = async (req, res) => {
       post: updatedPost,
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -215,13 +205,9 @@ const deleteComment = async (req, res) => {
     }
 
     comment.deleteOne();
-
     await post.save();
 
-    res.json({
-      message: "Comment deleted successfully",
-      post,
-    });
+    res.json({ message: "Comment deleted successfully", post });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
