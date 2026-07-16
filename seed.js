@@ -146,6 +146,9 @@ async function seed() {
     ["home-10.jpg", "Working from anywhere.", "Home post 10: Working from anywhere."],
   ], [anna, alex, maria], "home");
 
+  // Remove duplicates left by older seed versions that used numbered captions.
+  await Post.deleteMany({ author: daniel._id, placement: "home", text: /^Home post \d+:/ });
+
   const careerPosts = await ensurePosts(career, [
     ["itcareer-1.jpg", "Проект с участием выпускников IT Career Hub"],
     ["itcareer-2.jpg", "Получите инструкцию к поиску работы в Германии"],
