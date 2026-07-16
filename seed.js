@@ -33,8 +33,12 @@ async function upsertUser(data, password) {
 async function ensurePosts(author, specs, commenters, placement) {
   const posts = [];
   for (let index = 0; index < specs.length; index += 1) {
-    const [filename, text] = specs[index];
-    let post = await Post.findOne({ author: author._id, text });
+    const [filename, text, previousText] = specs[index];
+    let post = await Post.findOne({
+      author: author._id,
+      placement,
+      text: previousText ? { $in: [text, previousText] } : text,
+    });
     if (!post) {
       post = await Post.create({
         text,
@@ -50,6 +54,7 @@ async function ensurePosts(author, specs, commenters, placement) {
         }],
       });
     } else {
+      post.text = text;
       post.image = imageData(filename);
       post.placement = placement;
       await post.save();
@@ -129,16 +134,16 @@ async function seed() {
   }
 
   const homePosts = await ensurePosts(daniel, [
-    ["home-1.jpg", "Home post 1: Future architecture."],
-    ["home-2.jpg", "Home post 2: Architecture and color."],
-    ["home-3.jpg", "Home post 3: Mountain light."],
-    ["home-4.jpg", "Home post 4: Street details."],
-    ["home-5.jpg", "Home post 5: Stories left behind."],
-    ["home-6.jpg", "Home post 6: Canyon adventure."],
-    ["home-7.jpg", "Home post 7: A cinematic place."],
-    ["home-8.jpg", "Home post 8: An unusual character."],
-    ["home-9.jpg", "Home post 9: Team challenge."],
-    ["home-10.jpg", "Home post 10: Working from anywhere."],
+    ["home-1.jpg", "Future architecture.", "Home post 1: Future architecture."],
+    ["home-2.jpg", "Architecture and color.", "Home post 2: Architecture and color."],
+    ["home-3.jpg", "Mountain light.", "Home post 3: Mountain light."],
+    ["home-4.jpg", "Street details.", "Home post 4: Street details."],
+    ["home-5.jpg", "Stories left behind.", "Home post 5: Stories left behind."],
+    ["home-6.jpg", "Canyon adventure.", "Home post 6: Canyon adventure."],
+    ["home-7.jpg", "A cinematic place.", "Home post 7: A cinematic place."],
+    ["home-8.jpg", "An unusual character.", "Home post 8: An unusual character."],
+    ["home-9.jpg", "Team challenge.", "Home post 9: Team challenge."],
+    ["home-10.jpg", "Working from anywhere.", "Home post 10: Working from anywhere."],
   ], [anna, alex, maria], "home");
 
   const careerPosts = await ensurePosts(career, [
