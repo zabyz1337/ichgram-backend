@@ -9,6 +9,7 @@ const getFeed = async (req, res) => {
 
     const posts = await Post.find({
       author: { $in: authors },
+      placement: "home",
     })
       .populate("author", "username fullName avatar")
       .populate("comments.author", "username fullName avatar")

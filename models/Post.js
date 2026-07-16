@@ -11,6 +11,11 @@ const postSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    placement: {
+      type: String,
+      enum: ["home", "explore", "profile"],
+      default: "home",
+    },
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -37,6 +42,12 @@ const postSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
+        likes: [
+          {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+          },
+        ],
       },
     ],
   },

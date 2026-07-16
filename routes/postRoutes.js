@@ -8,6 +8,7 @@ const {
   toggleLikePost,
   addComment,
   deleteComment,
+  toggleLikeComment,
 } = require("../controllers/postController");
 
 const authMiddleware = require("../middlewares/authMiddleware");
@@ -25,5 +26,6 @@ router.post("/:id/like", authMiddleware, toggleLikePost);
 
 router.post("/:id/comments", authMiddleware, addComment);
 router.delete("/:postId/comments/:commentId", authMiddleware, deleteComment);
+router.post("/:postId/comments/:commentId/like", authMiddleware, toggleLikeComment);
 
 module.exports = router;

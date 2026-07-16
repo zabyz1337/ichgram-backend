@@ -230,6 +230,25 @@ const deleteComment = async (req, res) => {
   }
 };
 
+const toggleLikeComment = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+    const userId = req.user._id.toString();
+    const likes = comment.likes || [];
+    const liked = likes.some((id) => id.toString() === userId);
+    comment.likes = liked
+      ? likes.filter((id) => id.toString() !== userId)
+      : [...likes, req.user._id];
+    await post.save();
+    res.json({ liked: !liked, likes: comment.likes.length });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createPost,
   getPosts,
@@ -239,4 +258,5 @@ module.exports = {
   toggleLikePost,
   addComment,
   deleteComment,
+  toggleLikeComment,
 };

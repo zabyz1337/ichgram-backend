@@ -2,7 +2,10 @@ const Post = require("../models/Post");
 
 const getExplorePosts = async (req, res) => {
   try {
-    const posts = await Post.aggregate([{ $sample: { size: 30 } }]);
+    const posts = await Post.aggregate([
+      { $match: { placement: "explore" } },
+      { $sample: { size: 10 } },
+    ]);
 
     await Post.populate(posts, [
       { path: "author", select: "username fullName avatar" },

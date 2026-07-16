@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema(
       default: "",
       maxlength: 150,
     },
+    website: {
+      type: String,
+      default: "",
+    },
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,

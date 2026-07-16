@@ -34,7 +34,7 @@ const searchUsers = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { fullName, username, bio } = req.body;
+    const { fullName, username, bio, website } = req.body;
 
     if (username) {
       const existingUser = await User.findOne({ username });
@@ -54,6 +54,7 @@ const updateProfile = async (req, res) => {
     if (fullName !== undefined) user.fullName = fullName;
     if (username !== undefined) user.username = username;
     if (bio !== undefined) user.bio = bio;
+    if (website !== undefined) user.website = website;
     if (req.file) user.avatar = fileToBase64(req.file);
 
     await user.save();
